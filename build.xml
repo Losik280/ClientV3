@@ -1,0 +1,37 @@
+<project name="Reversi" default="jar" basedir=".">
+    <!-- Path setting -->
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="dist.dir" value="dist"/>
+
+    <!-- Create storing folders -->
+    <target name="init">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+    </target>
+
+    <!-- Java files compilation -->
+    <target name="compile" depends="init">
+        <javac srcdir="${src.dir}" destdir="${build.dir}"/>
+    </target>
+
+    <!-- Running JAR file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}/Reversi.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="Main"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Running project -->
+    <target name="run" depends="jar">
+        <java jar="${dist.dir}/Reversi.jar" fork="true"/>
+    </target>
+
+    <!-- Clean project -->
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+</project>
