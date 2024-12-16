@@ -45,7 +45,6 @@ public class GameView extends JFrame {
 
     public Position fromPos;
 
-    public int buttonClicks = 0;
 
 
     /**
@@ -59,7 +58,8 @@ public class GameView extends JFrame {
         setSize(800, 800);
 
         statusLabel = new JLabel("Welcome to Reversi", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 15));
+        statusLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        statusLabel.setBackground(Color.gray);
 
         add(statusLabel, BorderLayout.SOUTH);
 
@@ -95,7 +95,7 @@ public class GameView extends JFrame {
 
         gamePanel = new JPanel();
         // show game board
-        gamePanel.setLayout(new GridLayout(Constants.GAME_BOARD_SIZE, Constants.GAME_BOARD_SIZE));  // Mřížka 5x5 pro herní desku
+        gamePanel.setLayout(new GridLayout(Constants.GAME_BOARD_SIZE, Constants.GAME_BOARD_SIZE));
         for (int i = 0; i < Constants.GAME_BOARD_SIZE; i++) {
             for (int j = 0; j < Constants.GAME_BOARD_SIZE; j++) {
                 buttons[i][j] = new JButton();  // all buttons are empty at the beginning
@@ -152,24 +152,27 @@ public class GameView extends JFrame {
         // JPanel for login form
         JPanel logForm = new JPanel();
         int width = (int) (getWidth() * 0.25);
-        int height = (int) (getHeight() * 0.33);
+        int height = (int) (getHeight() * 0.15);//0.33);
 
         // set layout for login form
-        logForm.setLayout(new GridLayout(3, 2, 10, 20));
+        logForm.setLayout(new GridLayout(8, 1, 10, 20));
         logForm.setBorder(BorderFactory.createEmptyBorder(height, width, height, width));
 
         // Form fields
-        logForm.add(new JLabel("Name:"));
+        logForm.add(new JLabel("Name:"), BorderLayout.SOUTH);
         nameField = new JTextField("Player"+ (int)(Math.random()*1000));
-        logForm.add(nameField);
+        logForm.add(nameField,BorderLayout.NORTH);
+        logForm.add(new JLabel());
 
-        logForm.add(new JLabel("Server Address:"));
+        logForm.add(new JLabel("Server IP:"), BorderLayout.SOUTH);
         serverField = new JTextField("172.26.80.169");
-        logForm.add(serverField);
+        logForm.add(serverField,BorderLayout.NORTH);
+        logForm.add(new JLabel());
 
-        logForm.add(new JLabel("Port:"));
+
+        logForm.add(new JLabel("Port:"), BorderLayout.SOUTH);
         portField = new JTextField("10000");
-        logForm.add(portField);
+        logForm.add(portField, BorderLayout.NORTH);
 
         // JPanel for button
         JPanel buttonPanel = new JPanel();
@@ -191,7 +194,7 @@ public class GameView extends JFrame {
                             controller.sendLogin(nameField.getText());
                             controller.sendWantGame();
                         } catch (Exception ex) {
-                            SwingUtilities.invokeLater(() -> showInfoMessage("Error: connecting to server failed - try again (check IP address and port)"));
+                            SwingUtilities.invokeLater(() -> showInfoMessage("Error: Connection failed"));
                         }
                         return null;
                     }
@@ -201,8 +204,12 @@ public class GameView extends JFrame {
 
         buttonPanel.add(connectButton);
 
+        logForm.setBackground(Color.gray);
+        buttonPanel.setBackground(Color.gray);
         loginPanel.add(logForm, BorderLayout.CENTER);
         loginPanel.add(buttonPanel, BorderLayout.SOUTH);
+        loginPanel.setBackground(Color.gray);
+        setBackground(Color.gray);
 
         add(loginPanel, BorderLayout.CENTER);
 //        revalidate();
@@ -225,7 +232,8 @@ public class GameView extends JFrame {
         }
 
         waitingPanel = new JPanel(new BorderLayout());
-        waitingPanel.add(new JLabel("<html><span style='font-size:20px'>Waiting for the opponent...</span></html>", SwingConstants.CENTER), BorderLayout.CENTER);
+        waitingPanel.setBackground(Color.gray);
+        waitingPanel.add(new JLabel("<html><span style='font-size:15px'>Stay tuned, waiting for someone else to start playing.</span></html>", SwingConstants.CENTER), BorderLayout.CENTER);
         add(waitingPanel, BorderLayout.CENTER);
         waitingPanel.repaint();
 
@@ -238,7 +246,7 @@ public class GameView extends JFrame {
      * @param result The result of the game.
      */
     public void showGameResult(String result) {
-        int response = JOptionPane.showOptionDialog(gamePanel, result, "GAME RESULT", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"New Game", "Quit Game"}, "New Game");
+        int response = JOptionPane.showOptionDialog(gamePanel, result, "GAME RESULT", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Play Again", "Quit"}, "Play Again");
         if (response == 0) {
             controller.sendWantGame();
         } else {
@@ -278,10 +286,7 @@ public class GameView extends JFrame {
      * Shows the Option dialog in case of connection error.
      */
     public void showConnectionError() {
-        int response = JOptionPane.showOptionDialog(gamePanel, "Do you want to try to reconnect?", "Connection error", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Yes", "No"}, "Yes");
-        if (response == 1) {
-            System.exit(0);
-        }
+        int response = JOptionPane.showOptionDialog(gamePanel, "Connection lost, trying to reconnect...", "Connection failure", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"OK"}, "OK");
     }
 
     public void showErrorMessage(String message) {
@@ -306,11 +311,11 @@ public class GameView extends JFrame {
             for (int j = 0; j < buttons[i].length; j++) {
                 char cell = board[i][j];
                 if (cell == 'R') {
-                    buttons[i][j].setBackground(Color.RED);
+                    buttons[i][j].setBackground(new Color(186,0,0));
                 } else if (cell == 'B') {
-                    buttons[i][j].setBackground(Color.BLUE);
+                    buttons[i][j].setBackground(new Color(0,0,220));
                 } else {
-                    buttons[i][j].setBackground(null); // Reset to default color
+                    buttons[i][j].setBackground(Color.gray); // Reset to default color
                 }
                 buttons[i][j].setEnabled(isClickable);  // Enable the button if it is empty
                 System.out.print(" " + (board[i][j] == ' ' ? "N" : board[i][j]));
@@ -333,20 +338,12 @@ public class GameView extends JFrame {
         header1.setFont(new Font("Arial", Font.BOLD, 20));
         headerPanel.add(header1);
 
-
-//
-//        JLabel header3 = new JLabel("OPPONENT", SwingConstants.CENTER);
-//        header3.setFont(new Font("Arial", Font.BOLD, 20));
-//        headerPanel.add(header3);
-
         // show header (names of the players)
         JLabel player1 = new JLabel(controller.getModel().getMyPlayer().getName().trim(), SwingConstants.LEFT);
         player1.setFont(new Font("Arial", Font.PLAIN, 20));
         headerPanel.add(player1);
 
-//        JLabel currentPlayer = new JLabel(controller.getMyTurn() ? controller.getModel().getMyPlayer().getName().trim() : controller.getModel().getOpponentPlayer().getName().trim(), SwingConstants.CENTER);
-//        currentPlayer.setFont(new Font("Arial", Font.PLAIN, 20));
-//        headerPanel.add(currentPlayer);
+
 
 
 
@@ -407,6 +404,7 @@ public class GameView extends JFrame {
     }
 
     public void updateLabel(String text) {
+        statusLabel.setBackground(Color.lightGray);
         statusLabel.setText(text);
     }
 }
