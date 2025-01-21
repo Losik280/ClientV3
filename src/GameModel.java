@@ -117,7 +117,7 @@ public class GameModel {
      * @param targetY The y-coordinate of the move.
      * @param localChar The character representing the local player's pieces.
      */
-    public void updateBoard(int targetX, int targetY, char localChar) {
+    public void placeStoneAndUpdate(int targetX, int targetY, char localChar) {
         // Define possible movement directions
         int[][] moves = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
         char opposingChar = (localChar == 'R') ? 'B' : 'R';
@@ -146,13 +146,13 @@ public class GameModel {
         boolean canFlip = false;
 
         // Move in the specified direction and check for opponent's pieces
-        while (isInBounds(newX, newY) && gameBoard[newY][newX] == opponentChar) {
+        while (isWithinBounds(newX, newY) && gameBoard[newY][newX] == opponentChar) {
             newX += dx;
             newY += dy;
         }
 
         // If a player's piece is found, flip the opponent's pieces
-        if (isInBounds(newX, newY) && gameBoard[newY][newX] == playerChar) {
+        if (isWithinBounds(newX, newY) && gameBoard[newY][newX] == playerChar) {
             canFlip = true;
             while (newX != x || newY != y) {
                 newX -= dx;
@@ -171,7 +171,7 @@ public class GameModel {
      * @param y The y-coordinate to check.
      * @return true if the coordinates are within bounds, false otherwise.
      */
-    private boolean isInBounds(int x, int y) {
+    private boolean isWithinBounds(int x, int y) {
         return x >= 0 && x < gameBoard[0].length && y >= 0 && y < gameBoard.length;
     }
 

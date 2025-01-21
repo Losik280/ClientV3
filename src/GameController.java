@@ -89,11 +89,11 @@ public class GameController implements Runnable {
     }
 
     public void displayWaitingScreen() {
-        view.showWaitingPanel();
+        view.displayWaitingScreen();
     }
 
     public void displayLoginScreen() {
-        view.showLoginPanel();
+        view.displayLoginScreen();
         while (model.getLocalPlayer() == null) {
             try {
                 Thread.sleep(50);
@@ -105,15 +105,15 @@ public class GameController implements Runnable {
     }
 
     public void displayResult(String result) {
-        view.showGameResult(result);
+        view.displayGameResultDialog(result);
     }
 
     public void notifyDisconnection() {
-        view.showOpponentDisconnected();
+        view.displayOpponentLeft();
     }
 
     public void notifyConnectionIssue() {
-        view.showConnectionError();
+        view.notifyConnectionError();
     }
 
     /**
@@ -122,7 +122,7 @@ public class GameController implements Runnable {
      * @param player The current player making the move.
      */
     public void refreshGameBoard(int xCoord, int yCoord, Player player) {
-        model.updateBoard(xCoord, yCoord, player.getPlayerChar());
+        model.placeStoneAndUpdate(xCoord, yCoord, player.getPlayerChar());
         view.updateBoard(model, isActivePlayer);
     }
 
@@ -131,11 +131,11 @@ public class GameController implements Runnable {
     }
 
     public void refreshHeader() {
-        view.updateHeader();
+        view.refreshHeaderInfo();
     }
 
     public void displayError(String errorMessage) {
-        view.showErrorMessage(errorMessage);
+        view.displayErrorDialog(errorMessage);
     }
 
     @Override
@@ -144,6 +144,6 @@ public class GameController implements Runnable {
     }
 
     public void displayNotification(String message) {
-        view.updateLabel(message);
+        view.setStatusMessage(message);
     }
 }

@@ -5,75 +5,102 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 
 /**
- * Class for graphical user interface of Reversi game.
+ * Represents the main graphical user interface for the Reversi game.
+ * This class extends JFrame and handles all UI-related operations.
  */
 public class GameView extends JFrame {
+
+    /**
+     * The maximum number of characters allowed for a player's name.
+     */
     public static final int PLAYER_NAME_LENGTH = 20;
+
+    /**
+     * The size (rows and columns) of the Reversi game board.
+     */
     public static final int GAME_BOARD_SIZE = 4;
 
     /**
-     * Array of buttons for the game board.
+     * A 2D array (matrix) of buttons that comprise the Reversi board.
      */
-    private final JButton[][] buttons = new JButton[GAME_BOARD_SIZE][GAME_BOARD_SIZE];
+    private final JButton[][] boardButtons = new JButton[GAME_BOARD_SIZE][GAME_BOARD_SIZE];
 
     /**
-     * The controller for the game.
+     * The main game controller. It oversees the game logic and network operations.
      */
-    private GameController controller;
-
-    private final JLabel statusLabel;
-
+    private GameController mainController;
 
     /**
-     * The text field for the player's name (login)
+     * A label that displays status messages or tips for the player.
      */
-    private JPanel loginPanel;
+    private final JLabel lblStatus;
 
     /**
-     * JPanel for waiting for the opponent
+     * A panel displaying the login form.
      */
-    private JPanel waitingPanel;
+    private JPanel panelLogin;
 
     /**
-     * JPanel for the game
+     * A panel displayed while waiting for an opponent to join.
      */
-    private JPanel gamePanel;
+    private JPanel panelWaiting;
 
     /**
-     * JPanel for the header
+     * A panel displaying the actual Reversi board during the game.
      */
-    private JPanel headerPanel;
-
-    private JTextField nameField, serverField, portField;
-
-    public Position fromPos;
-
-
+    private JPanel panelGame;
 
     /**
-     * Constructor of the ReversiView class.
+     * A panel displaying information (e.g., players’ names) in the header.
+     */
+    private JPanel panelHeader;
+
+    /**
+     * A text field for entering the player's name.
+     */
+    private JTextField fldName;
+
+    /**
+     * A text field for entering the server IP address.
+     */
+    private JTextField fldServer;
+
+    /**
+     * A text field for entering the server port number.
+     */
+    private JTextField fldPort;
+
+    /**
+     * Constructs the game view, sets up initial properties, and displays the main window.
+     *
+     * @param controller The main game controller (logic and network).
      */
     public GameView(GameController controller) {
-        this.controller = controller;
+        this.mainController = controller;
         setTitle("Reversi");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         setSize(800, 800);
 
-        statusLabel = new JLabel("Welcome to Reversi", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("Arial", Font.BOLD, 15));
-        statusLabel.setBackground(Color.gray);
+        lblStatus = new JLabel("Welcome to Reversi", SwingConstants.CENTER);
+        lblStatus.setFont(new Font("Arial", Font.BOLD, 15));
+        lblStatus.setBackground(Color.GRAY);
 
-        add(statusLabel, BorderLayout.SOUTH);
-
+        add(lblStatus, BorderLayout.SOUTH);
         setVisible(true);
     }
 
+    /**
+     * Custom handling of the window closing event to confirm if the user truly wants to exit
+     * when a network connection is active.
+     *
+     * @param e The WindowEvent triggered on closing.
+     */
     @Override
     protected void processWindowEvent(WindowEvent e) {
         if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-            if (controller.getNetworkClient() != null) {
-                if (!wantClose()) {
+            if (mainController.getNetworkClient() != null) {
+                if (!confirmCloseRequest()) {
                     return;
                 }
             }
@@ -82,306 +109,326 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Initializes the game board.
+     * Initializes and displays the game board by creating a grid of buttons.
      */
     public void initializeBoard() {
-        if (waitingPanel != null) {
-            remove(waitingPanel);
-//            waitingPanel = null;
+        if (panelWaiting != null) {
+            remove(panelWaiting);
         }
-        if (loginPanel != null) {
-            remove(loginPanel);
-//            loginPanel = null;
+        if (panelLogin != null) {
+            remove(panelLogin);
         }
+        refreshHeaderInfo();
 
-        updateHeader();
+        panelGame = new JPanel(new GridLayout(GAME_BOARD_SIZE, GAME_BOARD_SIZE));
+        for (int row = 0; row < GAME_BOARD_SIZE; row++) {
+            for (int col = 0; col < GAME_BOARD_SIZE; col++) {
+                boardButtons[row][col] = new JButton();
+                boardButtons[row][col].setFont(new Font("Arial", Font.PLAIN, 60));
 
-        gamePanel = new JPanel();
-        // show game board
-        gamePanel.setLayout(new GridLayout(GAME_BOARD_SIZE, GAME_BOARD_SIZE));
-        for (int i = 0; i < GAME_BOARD_SIZE; i++) {
-            for (int j = 0; j < GAME_BOARD_SIZE; j++) {
-                buttons[i][j] = new JButton();  // all buttons are empty at the beginning
-                buttons[i][j].setFont(new Font("Arial", Font.PLAIN, 60));
-                final int x = j;
-                final int y = i;
-
-                // Listener for the button
-                buttons[i][j].addActionListener(new ActionListener() {
+                final int x = col;
+                final int y = row;
+                boardButtons[row][col].addActionListener(new ActionListener() {
                     @Override
-                    public void actionPerformed(ActionEvent e) {
-
-                            controller.sendPlayerMove(x, y);
+                    public void actionPerformed(ActionEvent evt) {
+                        mainController.sendPlayerMove(x, y);
                     }
                 });
-                gamePanel.add(buttons[i][j]);  // Add the button to the frame
+                panelGame.add(boardButtons[row][col]);
             }
         }
-
-
-        add(gamePanel, BorderLayout.CENTER);
-        setVisible(true);  // Show the game board
+        add(panelGame, BorderLayout.CENTER);
+        setVisible(true);
     }
 
     /**
-     * Resets the game board.
-     */
-    public void resetBoard() {
-        for (int i = 0; i < buttons.length; i++) {
-            for (int j = 0; j < buttons[i].length; j++) {
-                buttons[i][j].setText(" ");
-                buttons[i][j].setEnabled(true);
-            }
-        }
-        repaint();
-    }
-
-    /**
-     * Sets the controller for the game.
+     * Assigns a new game controller.
      *
-     * @param controller The controller for the game.
+     * @param controller The new game controller to be used by this view.
      */
     public void setController(GameController controller) {
-        this.controller = controller;
+        this.mainController = controller;
     }
 
     /**
-     * Shows the login form.
+     * Displays a login panel where the user can input credentials (name, server IP, port).
      */
-    public void showLoginPanel() {
-        loginPanel = new JPanel(new BorderLayout());
-//        loginPanel = new JPanel();
-
-        // JPanel for login form
-        JPanel logForm = new JPanel();
+    public void displayLoginScreen() {
+        panelLogin = new JPanel(new BorderLayout());
+        JPanel loginFormPanel = new JPanel();
         int width = (int) (getWidth() * 0.25);
-        int height = (int) (getHeight() * 0.15);//0.33);
+        int height = (int) (getHeight() * 0.15);
 
-        // set layout for login form
-        logForm.setLayout(new GridLayout(8, 1, 10, 20));
-        logForm.setBorder(BorderFactory.createEmptyBorder(height, width, height, width));
+        loginFormPanel.setLayout(new GridLayout(8, 1, 10, 20));
+        loginFormPanel.setBorder(BorderFactory.createEmptyBorder(height, width, height, width));
 
-        // Form fields
-        logForm.add(new JLabel("Name:"), BorderLayout.SOUTH);
-        nameField = new JTextField("Player"+ (int)(Math.random()*1000));
-        logForm.add(nameField,BorderLayout.NORTH);
-        logForm.add(new JLabel());
+        // Player name
+        loginFormPanel.add(new JLabel("Name:"));
+        fldName = new JTextField("Player" + (int) (Math.random() * 1000));
+        loginFormPanel.add(fldName);
+        loginFormPanel.add(new JLabel());
 
-        logForm.add(new JLabel("Server IP:"), BorderLayout.SOUTH);
-        serverField = new JTextField("172.17.38.255");
-        logForm.add(serverField,BorderLayout.NORTH);
-        logForm.add(new JLabel());
+        // Server IP
+        loginFormPanel.add(new JLabel("Server IP:"));
+        fldServer = new JTextField("172.17.38.255");
+        loginFormPanel.add(fldServer);
+        loginFormPanel.add(new JLabel());
 
+        // Server port
+        loginFormPanel.add(new JLabel("Port:"));
+        fldPort = new JTextField("10000");
+        loginFormPanel.add(fldPort);
 
-        logForm.add(new JLabel("Port:"), BorderLayout.SOUTH);
-        portField = new JTextField("10000");
-        logForm.add(portField, BorderLayout.NORTH);
-
-        // JPanel for button
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER)); // Centrovaný layout pro tlačítko
+        // Connect button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 40, 0));
 
-        JButton connectButton = new JButton("Connect");
-
-        connectButton.addActionListener(e -> {
-            nameField.setText(nameField.getText().trim());
-            portField.setText(portField.getText().trim());
-            serverField.setText(serverField.getText().trim());
-            if (validateLogin()) {
-                new SwingWorker<Void, Void>() {
-                    @Override
-                    protected Void doInBackground() {
-                        try {
-                            controller.setNetworkClient(new NetworkClient(serverField.getText(), Integer.parseInt(portField.getText()), controller));
-                            controller.sendLogin(nameField.getText());
-                            controller.requestGameStart();
-                        } catch (Exception ex) {
-                            SwingUtilities.invokeLater(() -> showInfoMessage("Error: Connection failed"));
+        JButton btnConnect = new JButton("Connect");
+        btnConnect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                fldName.setText(fldName.getText().trim());
+                fldPort.setText(fldPort.getText().trim());
+                fldServer.setText(fldServer.getText().trim());
+                if (isLoginValid()) {
+                    new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() {
+                            try {
+                                mainController.setNetworkClient(
+                                        new NetworkClient(fldServer.getText(),
+                                                Integer.parseInt(fldPort.getText()),
+                                                mainController)
+                                );
+                                mainController.sendLogin(fldName.getText());
+                                mainController.requestGameStart();
+                            } catch (Exception ex) {
+                                SwingUtilities.invokeLater(() -> displayInformationDialog("Error: Connection failed"));
+                            }
+                            return null;
                         }
-                        return null;
-                    }
-                }.execute();
+                    }.execute();
+                }
             }
         });
+        buttonPanel.add(btnConnect);
 
-        buttonPanel.add(connectButton);
+        loginFormPanel.setBackground(Color.GRAY);
+        buttonPanel.setBackground(Color.GRAY);
+        panelLogin.add(loginFormPanel, BorderLayout.CENTER);
+        panelLogin.add(buttonPanel, BorderLayout.SOUTH);
+        panelLogin.setBackground(Color.GRAY);
+        setBackground(Color.GRAY);
 
-        logForm.setBackground(Color.gray);
-        buttonPanel.setBackground(Color.gray);
-        loginPanel.add(logForm, BorderLayout.CENTER);
-        loginPanel.add(buttonPanel, BorderLayout.SOUTH);
-        loginPanel.setBackground(Color.gray);
-        setBackground(Color.gray);
-
-        add(loginPanel, BorderLayout.CENTER);
-//        revalidate();
-//        repaint();
+        add(panelLogin, BorderLayout.CENTER);
         setVisible(true);
     }
 
     /**
-     * Shows the waiting panel.
+     * Displays a panel informing the user that the system is waiting for an opponent.
      */
-    public void showWaitingPanel() {
-        if (loginPanel != null) {
-            remove(loginPanel);
+    public void displayWaitingScreen() {
+        if (panelLogin != null) {
+            remove(panelLogin);
         }
-        if (gamePanel != null) {
-            remove(gamePanel);
+        if (panelGame != null) {
+            remove(panelGame);
         }
-        if (headerPanel != null) {
-            remove(headerPanel);
+        if (panelHeader != null) {
+            remove(panelHeader);
         }
 
-        waitingPanel = new JPanel(new BorderLayout());
-        waitingPanel.setBackground(Color.gray);
-        waitingPanel.add(new JLabel("<html><span style='font-size:15px'>Stay tuned, waiting for someone else to start playing.</span></html>", SwingConstants.CENTER), BorderLayout.CENTER);
-        add(waitingPanel, BorderLayout.CENTER);
-        waitingPanel.repaint();
-
+        panelWaiting = new JPanel(new BorderLayout());
+        panelWaiting.setBackground(Color.GRAY);
+        panelWaiting.add(new JLabel(
+                "<html><span style='font-size:15px'>Stay tuned, waiting for another player...</span></html>",
+                SwingConstants.CENTER), BorderLayout.CENTER);
+        add(panelWaiting, BorderLayout.CENTER);
+        panelWaiting.repaint();
         setVisible(true);
     }
 
     /**
-     * Shows the result of the game.
+     * Displays the result of the game in a dialog and offers the user the choice to play again or quit.
      *
-     * @param result The result of the game.
+     * @param result A string describing the final state of the game.
      */
-    public void showGameResult(String result) {
-        int response = JOptionPane.showOptionDialog(gamePanel, result, "GAME RESULT", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Play Again", "Quit"}, "Play Again");
+    public void displayGameResultDialog(String result) {
+        int response = JOptionPane.showOptionDialog(
+                panelGame,
+                result,
+                "GAME RESULT",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new String[]{"Play Again", "Quit"},
+                "Play Again"
+        );
         if (response == 0) {
-            controller.requestGameStart();
+            mainController.requestGameStart();
         } else {
-            controller.sendLogout();
+            mainController.sendLogout();
             System.exit(0);
         }
-
-        gamePanel.revalidate();
-        gamePanel.repaint();
+        panelGame.revalidate();
+        panelGame.repaint();
     }
 
     /**
-     * Shows the Option dialog for message that the opponent has disconnected.
+     * Shows a dialog indicating the opponent has disconnected, giving options to wait or not.
      */
-    public void showOpponentDisconnected() {
-        int response = JOptionPane.showOptionDialog(gamePanel, "Do you want to wait for opponent?", "Opponent disconnected", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Yes", "No"}, "Yes");
+    public void displayOpponentLeft() {
+        int response = JOptionPane.showOptionDialog(
+                panelGame,
+                "Do you want to wait for an opponent?",
+                "Opponent Disconnected",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new String[]{"Yes", "No"},
+                "Yes"
+        );
         if (response == 0) {
-            controller.notifyOpponentDisconnection("WAIT");
+            mainController.notifyOpponentDisconnection("WAIT");
         } else {
-            controller.notifyOpponentDisconnection("NOT_WAIT");
+            mainController.notifyOpponentDisconnection("NOT_WAIT");
         }
     }
 
     /**
-     * Shows the Option dialog in case that user want to leave from existing connection
+     * Asks the user for confirmation to close the application if a network connection is established.
+     *
+     * @return true if the user wants to close, false otherwise.
      */
-    public boolean wantClose() {
-        int response = JOptionPane.showOptionDialog(gamePanel, "Do you really want to leave?", "", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Yes", "No"}, "No");
+    public boolean confirmCloseRequest() {
+        int response = JOptionPane.showOptionDialog(
+                panelGame,
+                "Do you really want to leave?",
+                "",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new String[]{"Yes", "No"},
+                "No"
+        );
         if (response == 0) {
-            controller.sendLogout();
+            mainController.sendLogout();
             return true;
         }
         return false;
     }
 
     /**
-     * Shows the Option dialog in case of connection error.
+     * Shows a dialog indicating a connection error and attempts to reconnect.
      */
-    public void showConnectionError() {
-        int response = JOptionPane.showOptionDialog(gamePanel, "Connection lost, trying to reconnect...", "Connection failure", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"OK"}, "OK");
+    public void notifyConnectionError() {
+        JOptionPane.showOptionDialog(
+                panelGame,
+                "Connection lost, trying to reconnect...",
+                "Connection Failure",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new String[]{"OK"},
+                "OK"
+        );
     }
 
-    public void showErrorMessage(String message) {
+    /**
+     * Displays an error dialog with the given message, then closes the application.
+     *
+     * @param message A short description of the error.
+     */
+    public void displayErrorDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
-        // close application
         System.exit(0);
     }
 
-    public void showInfoMessage(String message) {
+    /**
+     * Displays an informational dialog with the given message.
+     *
+     * @param message A short informational text.
+     */
+    public void displayInformationDialog(String message) {
         JOptionPane.showMessageDialog(this, message, "Info", JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
-     * Updates the game board with the player's move according to the model.
+     * Updates the board's colors and clickability according to the current model state.
      *
-     * @param model       The model of the game.
-     * @param isClickable True if the button is clickable, false otherwise.
+     * @param model        The main game model providing the current board state.
+     * @param isClickable  If true, the board squares are enabled for user interaction.
      */
     public void updateBoard(GameModel model, boolean isClickable) {
         char[][] board = model.getGameBoard();
-        for (int i = 0; i < buttons.length; i++) {
-            for (int j = 0; j < buttons[i].length; j++) {
-                char cell = board[i][j];
+        for (int row = 0; row < boardButtons.length; row++) {
+            for (int col = 0; col < boardButtons[row].length; col++) {
+                char cell = board[row][col];
                 if (cell == 'R') {
-                    buttons[i][j].setBackground(new Color(186,0,0));
+                    boardButtons[row][col].setBackground(new Color(186, 0, 0));
                 } else if (cell == 'B') {
-                    buttons[i][j].setBackground(new Color(0,0,220));
+                    boardButtons[row][col].setBackground(new Color(0, 0, 220));
                 } else {
-                    buttons[i][j].setBackground(Color.gray); // Reset to default color
+                    boardButtons[row][col].setBackground(Color.GRAY);
                 }
-                buttons[i][j].setEnabled(isClickable);  // Enable the button if it is empty
-                System.out.print(" " + (board[i][j] == ' ' ? "N" : board[i][j]));
+                boardButtons[row][col].setEnabled(isClickable);
             }
-            System.out.println();
         }
-        gamePanel.revalidate();
-        gamePanel.repaint();
+        panelGame.revalidate();
+        panelGame.repaint();
     }
 
-    public void updateHeader() {
-        if (headerPanel != null) {
-            remove(headerPanel);
-            headerPanel = null;
+    /**
+     * Updates the header panel to show the names of the local and remote players.
+     */
+    public void refreshHeaderInfo() {
+        if (panelHeader != null) {
+            remove(panelHeader);
+            panelHeader = null;
         }
 
-        headerPanel = new JPanel(new GridLayout(1, 4));
+        panelHeader = new JPanel(new GridLayout(1, 4));
 
-        JLabel header1 = new JLabel("You:", SwingConstants.RIGHT);
-        header1.setFont(new Font("Arial", Font.BOLD, 20));
-        headerPanel.add(header1);
+        JLabel lblYourSide = new JLabel("You:", SwingConstants.RIGHT);
+        lblYourSide.setFont(new Font("Arial", Font.BOLD, 20));
+        panelHeader.add(lblYourSide);
 
-        // show header (names of the players)
-        JLabel player1 = new JLabel(controller.getModel().getLocalPlayer().getName().trim(), SwingConstants.LEFT);
-        player1.setFont(new Font("Arial", Font.PLAIN, 20));
-        headerPanel.add(player1);
+        JLabel lblLocalName = new JLabel(mainController.getModel().getLocalPlayer().getName().trim(), SwingConstants.LEFT);
+        lblLocalName.setFont(new Font("Arial", Font.PLAIN, 20));
+        panelHeader.add(lblLocalName);
 
+        JLabel lblOpponentSide = new JLabel("Opponent:", SwingConstants.RIGHT);
+        lblOpponentSide.setFont(new Font("Arial", Font.BOLD, 20));
+        panelHeader.add(lblOpponentSide);
 
+        JLabel lblRemoteName = new JLabel(mainController.getModel().getRemotePlayer().getName().trim(), SwingConstants.LEFT);
+        lblRemoteName.setFont(new Font("Arial", Font.PLAIN, 20));
+        panelHeader.add(lblRemoteName);
 
-
-
-        JLabel header2 = new JLabel("Opponent:", SwingConstants.RIGHT);
-        header2.setFont(new Font("Arial", Font.BOLD, 20));
-        headerPanel.add(header2);
-
-        JLabel player2 = new JLabel(controller.getModel().getRemotePlayer().getName().trim(), SwingConstants.LEFT);
-        player2.setFont(new Font("Arial", Font.PLAIN, 20));
-        headerPanel.add(player2);
-
-
-        //get client colour
-        char playerChar = controller.getModel().getLocalPlayer().getPlayerChar();
-        if (playerChar == 'R') {
-            player1.setForeground(Color.RED);
-            player2.setForeground(Color.BLUE);
+        char localChar = mainController.getModel().getLocalPlayer().getPlayerChar();
+        if (localChar == 'R') {
+            lblLocalName.setForeground(Color.RED);
+            lblRemoteName.setForeground(Color.BLUE);
         } else {
-            player1.setForeground(Color.BLUE);
-            player2.setForeground(Color.RED);
+            lblLocalName.setForeground(Color.BLUE);
+            lblRemoteName.setForeground(Color.RED);
         }
 
-        add(headerPanel, BorderLayout.NORTH);
-        headerPanel.revalidate();
-        headerPanel.repaint();
+        add(panelHeader, BorderLayout.NORTH);
+        panelHeader.revalidate();
+        panelHeader.repaint();
         setVisible(true);
     }
 
     /**
-     * Handles the login of the player.
+     * Validates that the user's login information is correct and well-formed.
+     *
+     * @return True if valid, false otherwise.
      */
-    private boolean validateLogin() {
-        String name = nameField.getText();
-        String serverAddress = serverField.getText();
-        String port = portField.getText();
+    private boolean isLoginValid() {
+        String name = fldName.getText();
+        String serverAddress = fldServer.getText();
+        String port = fldPort.getText();
 
         if (name.isEmpty() || serverAddress.isEmpty() || port.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -400,14 +447,19 @@ public class GameView extends JFrame {
             return false;
         }
 
-        while (nameField.getText().length() < PLAYER_NAME_LENGTH) {
-            nameField.setText(nameField.getText() + " ");
+        while (fldName.getText().length() < PLAYER_NAME_LENGTH) {
+            fldName.setText(fldName.getText() + " ");
         }
         return true;
     }
 
-    public void updateLabel(String text) {
-        statusLabel.setBackground(Color.lightGray);
-        statusLabel.setText(text);
+    /**
+     * Updates the status label at the bottom of the window with the specified text.
+     *
+     * @param text A message to be displayed to the user.
+     */
+    public void setStatusMessage(String text) {
+        lblStatus.setBackground(Color.LIGHT_GRAY);
+        lblStatus.setText(text);
     }
 }
