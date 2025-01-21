@@ -309,7 +309,7 @@ public class GameView extends JFrame {
      * @param isClickable True if the button is clickable, false otherwise.
      */
     public void updateBoard(GameModel model, boolean isClickable) {
-        char[][] board = model.getBoard();
+        char[][] board = model.getGameBoard();
         for (int i = 0; i < buttons.length; i++) {
             for (int j = 0; j < buttons[i].length; j++) {
                 char cell = board[i][j];
@@ -342,7 +342,7 @@ public class GameView extends JFrame {
         headerPanel.add(header1);
 
         // show header (names of the players)
-        JLabel player1 = new JLabel(controller.getModel().getMyPlayer().getName().trim(), SwingConstants.LEFT);
+        JLabel player1 = new JLabel(controller.getModel().getLocalPlayer().getName().trim(), SwingConstants.LEFT);
         player1.setFont(new Font("Arial", Font.PLAIN, 20));
         headerPanel.add(player1);
 
@@ -354,13 +354,13 @@ public class GameView extends JFrame {
         header2.setFont(new Font("Arial", Font.BOLD, 20));
         headerPanel.add(header2);
 
-        JLabel player2 = new JLabel(controller.getModel().getOpponentPlayer().getName().trim(), SwingConstants.LEFT);
+        JLabel player2 = new JLabel(controller.getModel().getRemotePlayer().getName().trim(), SwingConstants.LEFT);
         player2.setFont(new Font("Arial", Font.PLAIN, 20));
         headerPanel.add(player2);
 
 
         //get client colour
-        char playerChar = controller.getModel().getMyPlayer().getPlayerChar();
+        char playerChar = controller.getModel().getLocalPlayer().getPlayerChar();
         if (playerChar == 'R') {
             player1.setForeground(Color.RED);
             player2.setForeground(Color.BLUE);

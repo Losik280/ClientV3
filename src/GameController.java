@@ -94,7 +94,7 @@ public class GameController implements Runnable {
 
     public void displayLoginScreen() {
         view.showLoginPanel();
-        while (model.getMyPlayer() == null) {
+        while (model.getLocalPlayer() == null) {
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {

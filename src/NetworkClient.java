@@ -141,24 +141,24 @@ public class NetworkClient {
                 } else if (parts[1].equals(GAME_STATUS_OPP_END)) {
                     new Thread(() -> controller.displayResult("OPPONENT DID NOT WANT TO WAIT FOR YOU")).start();
                 } else {
-                    new Thread(() -> controller.displayResult(parts[1].equals(controller.getModel().getMyPlayer().getName()) ? "Winner winner chicken dinner!" : "Better luck next time...")).start();
+                    new Thread(() -> controller.displayResult(parts[1].equals(controller.getModel().getLocalPlayer().getName()) ? "Winner winner chicken dinner!" : "Better luck next time...")).start();
                 }
                 break;
             }
             case "LOGIN": {
                 System.out.println("RCV: LOGIN_OK");
-                controller.getModel().setMyPlayer(new Player(parts[1]));
+                controller.getModel().setLocalPlayer(new Player(parts[1]));
                 break;
             }
             case "WANT_GAME": {
                 System.out.println("RCV: WANT_GAME");
-                controller.getModel().getMyPlayer().setPlayerChar(parts[1].charAt(0));
+                controller.getModel().getLocalPlayer().setPlayerChar(parts[1].charAt(0));
                 controller.displayWaitingScreen();
                 break;
             }
             case "START_GAME": {
                 System.out.println("RCV: GAME_STARTED");
-                controller.getModel().setOpponentPlayer(parts[1], parts[2].charAt(0));
+                controller.getModel().setRemotePlayer(parts[1], parts[2].charAt(0));
                 controller.setMyTurn(parts[3].charAt(0) == '1');
                 //if my turn notify player
                 if (controller.isMyTurn()) {
@@ -178,7 +178,7 @@ public class NetworkClient {
                     return;
                 }
                 controller.setMyTurn(false);
-                controller.refreshGameBoard(Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), controller.getModel().getMyPlayer());
+                controller.refreshGameBoard(Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), controller.getModel().getLocalPlayer());
                 controller.displayNotification("Waiting for opponent move");
                 controller.refreshHeader();
                 break;
@@ -188,7 +188,7 @@ public class NetworkClient {
                 int toX = Integer.parseInt(parts[1]);
                 int toY = Integer.parseInt(parts[2]);
                 controller.setMyTurn(true);
-                controller.refreshGameBoard(toX, toY, controller.getModel().getOpponentPlayer());
+                controller.refreshGameBoard(toX, toY, controller.getModel().getRemotePlayer());
                 controller.displayNotification("Your turn!");
                 controller.refreshHeader();
                 break;
@@ -211,9 +211,9 @@ public class NetworkClient {
             }
             case "RECONNECT": {
                 System.out.println("RCV: RECONNECT");
-                controller.setMyTurn(parts[2].equals(controller.getModel().getMyPlayer().getName()));
+                controller.setMyTurn(parts[2].equals(controller.getModel().getLocalPlayer().getName()));
                 controller.getModel().updateBoard(parts[1]);
-                controller.getModel().setOpponentPlayer(parts[3], parts[4].charAt(0));
+                controller.getModel().setRemotePlayer(parts[3], parts[4].charAt(0));
                 controller.refreshGameView();
                 controller.refreshHeader();
                 break;
