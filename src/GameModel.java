@@ -35,20 +35,11 @@ public class GameModel {
     /**
      * Sets the remote player with the given name and token.
      *
-     * @param name The name of the remote player.
+     * @param name  The name of the remote player.
      * @param token The character token representing the remote player.
      */
     public void setRemotePlayer(String name, char token) {
         this.remotePlayer = new Player(name, token);
-    }
-
-    /**
-     * Sets the local player.
-     *
-     * @param player The local player object.
-     */
-    public void setLocalPlayer(Player player) {
-        this.localPlayer = player;
     }
 
     /**
@@ -58,6 +49,15 @@ public class GameModel {
      */
     public Player getLocalPlayer() {
         return localPlayer;
+    }
+
+    /**
+     * Sets the local player.
+     *
+     * @param player The local player object.
+     */
+    public void setLocalPlayer(Player player) {
+        this.localPlayer = player;
     }
 
     /**
@@ -100,6 +100,7 @@ public class GameModel {
 
     /**
      * Incorporates the server's response into the game state.
+     *
      * @param serverResponse The response from the server. (e.g. "XOXOXOXO O X")
      */
     public void updateBoard(String serverResponse) {
@@ -113,8 +114,8 @@ public class GameModel {
     /**
      * Updates the game board with a new move and flips the opponent's pieces as necessary.
      *
-     * @param targetX The x-coordinate of the move.
-     * @param targetY The y-coordinate of the move.
+     * @param targetX   The x-coordinate of the move.
+     * @param targetY   The y-coordinate of the move.
      * @param localChar The character representing the local player's pieces.
      */
     public void placeStoneAndUpdate(int targetX, int targetY, char localChar) {
@@ -132,11 +133,11 @@ public class GameModel {
     /**
      * Checks if pieces can be flipped in a given direction and flips them if possible.
      *
-     * @param x The starting x-coordinate.
-     * @param y The starting y-coordinate.
-     * @param dx The x-direction to move.
-     * @param dy The y-direction to move.
-     * @param playerChar The character representing the player's pieces.
+     * @param x            The starting x-coordinate.
+     * @param y            The starting y-coordinate.
+     * @param dx           The x-direction to move.
+     * @param dy           The y-direction to move.
+     * @param playerChar   The character representing the player's pieces.
      * @param opponentChar The character representing the opponent's pieces.
      * @return true if pieces were flipped, false otherwise.
      */
@@ -175,4 +176,36 @@ public class GameModel {
         return x >= 0 && x < gameBoard[0].length && y >= 0 && y < gameBoard.length;
     }
 
+}
+
+
+class Player {
+    private String name;
+    char playerChar;
+
+    public Player (String name) {
+        this.name = name;
     }
+
+    public Player (String name, char playerChar) {
+        this.name = name;
+        this.playerChar = playerChar;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public char getPlayerChar() {
+        return this.playerChar;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPlayerChar(char playerChar) {
+        this.playerChar = playerChar;
+    }
+
+}

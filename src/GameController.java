@@ -77,7 +77,7 @@ public class GameController implements Runnable {
     }
 
     public void sendLogin(String playerName) {
-        networkClient.sendLogin(playerName);
+        networkClient.requestLogin(playerName);
     }
 
     public void sendLogout() {
@@ -85,7 +85,7 @@ public class GameController implements Runnable {
     }
 
     public void requestGameStart() {
-        networkClient.sendWantGame();
+        networkClient.requestNewGame();
     }
 
     public void displayWaitingScreen() {
