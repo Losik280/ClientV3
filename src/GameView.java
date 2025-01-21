@@ -8,10 +8,13 @@ import java.awt.event.WindowEvent;
  * Class for graphical user interface of Reversi game.
  */
 public class GameView extends JFrame {
+    public static final int PLAYER_NAME_LENGTH = 20;
+    public static final int GAME_BOARD_SIZE = 4;
+
     /**
      * Array of buttons for the game board.
      */
-    private final JButton[][] buttons = new JButton[Constants.GAME_BOARD_SIZE][Constants.GAME_BOARD_SIZE];
+    private final JButton[][] buttons = new JButton[GAME_BOARD_SIZE][GAME_BOARD_SIZE];
 
     /**
      * The controller for the game.
@@ -95,9 +98,9 @@ public class GameView extends JFrame {
 
         gamePanel = new JPanel();
         // show game board
-        gamePanel.setLayout(new GridLayout(Constants.GAME_BOARD_SIZE, Constants.GAME_BOARD_SIZE));
-        for (int i = 0; i < Constants.GAME_BOARD_SIZE; i++) {
-            for (int j = 0; j < Constants.GAME_BOARD_SIZE; j++) {
+        gamePanel.setLayout(new GridLayout(GAME_BOARD_SIZE, GAME_BOARD_SIZE));
+        for (int i = 0; i < GAME_BOARD_SIZE; i++) {
+            for (int j = 0; j < GAME_BOARD_SIZE; j++) {
                 buttons[i][j] = new JButton();  // all buttons are empty at the beginning
                 buttons[i][j].setFont(new Font("Arial", Font.PLAIN, 60));
                 final int x = j;
@@ -165,7 +168,7 @@ public class GameView extends JFrame {
         logForm.add(new JLabel());
 
         logForm.add(new JLabel("Server IP:"), BorderLayout.SOUTH);
-        serverField = new JTextField("172.26.80.169");
+        serverField = new JTextField("172.17.38.255");
         logForm.add(serverField,BorderLayout.NORTH);
         logForm.add(new JLabel());
 
@@ -392,12 +395,12 @@ public class GameView extends JFrame {
             return false;
         }
 
-        if (name.length() > Constants.PLAYER_NAME_LENGTH) {
+        if (name.length() > PLAYER_NAME_LENGTH) {
             JOptionPane.showMessageDialog(this, "Name is too long!", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
-        while (nameField.getText().length() < Constants.PLAYER_NAME_LENGTH) {
+        while (nameField.getText().length() < PLAYER_NAME_LENGTH) {
             nameField.setText(nameField.getText() + " ");
         }
         return true;

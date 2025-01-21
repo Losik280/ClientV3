@@ -26,7 +26,7 @@ public class GameModel {
      * Constructor of the ReversiModel class.
      */
     public GameModel(boolean myTurn) {
-        this.board = new char[Constants.GAME_BOARD_SIZE][Constants.GAME_BOARD_SIZE];
+        this.board = new char[GameView.GAME_BOARD_SIZE][GameView.GAME_BOARD_SIZE];
         //resetBoard(myTurn);
     }
 
@@ -64,9 +64,9 @@ public class GameModel {
      * @param response The response from the server. (e.g. "XOXOXOXO O X")
      */
     public void updateBoard(String response) {
-        for (int i = 0; i < Constants.GAME_BOARD_SIZE; i++) {
-            for (int j = 0; j < Constants.GAME_BOARD_SIZE; j++) {
-                board[i][j] = response.charAt(i * Constants.GAME_BOARD_SIZE + j);
+        for (int i = 0; i < GameView.GAME_BOARD_SIZE; i++) {
+            for (int j = 0; j < GameView.GAME_BOARD_SIZE; j++) {
+                board[i][j] = response.charAt(i * GameView.GAME_BOARD_SIZE + j);
             }
         }
 

@@ -3,8 +3,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Set;
 
 public class ServerClient {
+    public static final int GAME_NOT_FOUND = 5;
+    public static final int NOT_MY_TURN = 6;
+    public static final int INVALID_MOVE = 7;
+    public static final int FIELD_TAKEN = 8;
+    public static Set<Integer> MOVE_BAD_STATUS = Set.of(GAME_NOT_FOUND, NOT_MY_TURN, INVALID_MOVE, FIELD_TAKEN);
+
+    public static final long TIMEOUT = 6500;
+    public static final long ZOMBIE_TIMEOUT = 20000;
+    public static final String GAME_STATUS_DRAW = "DRAW";
+    public static final String GAME_STATUS_OPP_END = "OPP_DISCONNECTED";
+
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -101,13 +113,13 @@ public class ServerClient {
 
     private void monitorConnection() {
         while (true) {
-            if (System.currentTimeMillis() - this.lastPing > Constants.TIMEOUT && this.needConnectionMessage) {
+            if (System.currentTimeMillis() - this.lastPing > TIMEOUT && this.needConnectionMessage) {
                 System.err.println("ERR: Connection inactive (monitorConnection)");
                 this.needConnectionMessage = false;
                 controller.showConnectionError();
             }
 
-            if (System.currentTimeMillis() - this.lastPing > Constants.ZOMBIE_TIMEOUT) {
+            if (System.currentTimeMillis() - this.lastPing > ZOMBIE_TIMEOUT) {
                 System.err.println("ERR: Connection inactive - zombie timeout (monitorConnection)");
                 controller.showErrorMessage("Connection inactive");
             }
@@ -124,9 +136,9 @@ public class ServerClient {
         switch (parts[0]) {
             case "GAME_STATUS": {
                 System.out.println("RCV: GAME_STATUS");
-                if (parts[1].equals(Constants.GAME_STATUS_DRAW)) {
+                if (parts[1].equals(GAME_STATUS_DRAW)) {
                     new Thread(() -> controller.showResult("DRAW")).start();
-                } else if (parts[1].equals(Constants.GAME_STATUS_OPP_END)) {
+                } else if (parts[1].equals(GAME_STATUS_OPP_END)) {
                     new Thread(() -> controller.showResult("OPPONENT DID NOT WANT TO WAIT FOR YOU")).start();
                 } else {
                     new Thread(() -> controller.showResult(parts[1].equals(controller.getModel().getMyPlayer().getName()) ? "Winner winner chicken dinner!" : "Better luck next time...")).start();
@@ -160,7 +172,7 @@ public class ServerClient {
             case "MOVE": {
                 System.out.println("RCV: MOVE");
                 int status = Integer.parseInt(parts[1]);
-                if (Constants.MOVE_BAD_STATUS.contains(status)) {
+                if (MOVE_BAD_STATUS.contains(status)) {
                     controller.notification("Invalid move, try again");
                     System.out.println("Invalid move: " + status);
                     return;
