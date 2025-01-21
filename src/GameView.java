@@ -72,7 +72,7 @@ public class GameView extends JFrame {
     @Override
     protected void processWindowEvent(WindowEvent e) {
         if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-            if (controller.getServerClient() != null) {
+            if (controller.getNetworkClient() != null) {
                 if (!wantClose()) {
                     return;
                 }
@@ -193,9 +193,9 @@ public class GameView extends JFrame {
                     @Override
                     protected Void doInBackground() {
                         try {
-                            controller.setServerClient(new ServerClient(serverField.getText(), Integer.parseInt(portField.getText()), controller));
+                            controller.setNetworkClient(new NetworkClient(serverField.getText(), Integer.parseInt(portField.getText()), controller));
                             controller.sendLogin(nameField.getText());
-                            controller.sendWantGame();
+                            controller.requestGameStart();
                         } catch (Exception ex) {
                             SwingUtilities.invokeLater(() -> showInfoMessage("Error: Connection failed"));
                         }
@@ -251,7 +251,7 @@ public class GameView extends JFrame {
     public void showGameResult(String result) {
         int response = JOptionPane.showOptionDialog(gamePanel, result, "GAME RESULT", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Play Again", "Quit"}, "Play Again");
         if (response == 0) {
-            controller.sendWantGame();
+            controller.requestGameStart();
         } else {
             controller.sendLogout();
             System.exit(0);
@@ -267,9 +267,9 @@ public class GameView extends JFrame {
     public void showOpponentDisconnected() {
         int response = JOptionPane.showOptionDialog(gamePanel, "Do you want to wait for opponent?", "Opponent disconnected", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Yes", "No"}, "Yes");
         if (response == 0) {
-            controller.sendOppDiscResponse("WAIT");
+            controller.notifyOpponentDisconnection("WAIT");
         } else {
-            controller.sendOppDiscResponse("NOT_WAIT");
+            controller.notifyOpponentDisconnection("NOT_WAIT");
         }
     }
 

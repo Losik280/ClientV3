@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Set;
 
-public class ServerClient {
+public class NetworkClient {
     public static final int GAME_NOT_FOUND = 5;
     public static final int NOT_MY_TURN = 6;
     public static final int INVALID_MOVE = 7;
@@ -26,7 +26,7 @@ public class ServerClient {
 
     private boolean needConnectionMessage = true;
 
-    public ServerClient(String serverAddress, int port, GameController controller) throws IOException {
+    public NetworkClient(String serverAddress, int port, GameController controller) throws IOException {
         try {
             socket = new Socket(serverAddress, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -50,7 +50,7 @@ public class ServerClient {
     public void sendMove( int toX, int toY) {
         if (out.checkError()) {
             System.err.println("ERR: Connection inactive");
-            controller.showErrorMessage("Connection inactive");
+            controller.displayError("Connection inactive");
             System.exit(0);
         }
         System.out.println("SND: " + toX + ";" + toY);
@@ -60,7 +60,7 @@ public class ServerClient {
     public void sendLogin(String name) {
         if (out.checkError()) {
             System.err.println("ERR: Connection inactive");
-            controller.showErrorMessage("Connection inactive");
+            controller.displayError("Connection inactive");
             System.exit(0);
         }
         System.out.println("SNDS: Login");
@@ -70,7 +70,7 @@ public class ServerClient {
     public void sendOppDiscResponse(String response) {
         if (out.checkError()) {
             System.err.println("ERR: Connection inactive");
-            controller.showErrorMessage("Connection inactive");
+            controller.displayError("Connection inactive");
             System.exit(0);
         }
         System.out.println("SNDS: opponent disconnect response");
@@ -80,7 +80,7 @@ public class ServerClient {
     public void sendWantGame() {
         if (out.checkError()) {
             System.err.println("ERR: Connection inactive");
-            controller.showErrorMessage("Connection inactive");
+            controller.displayError("Connection inactive");
             System.exit(0);
             return;
         }
@@ -91,7 +91,7 @@ public class ServerClient {
     public void sendLogout() {
         if (out.checkError()) {
             System.err.println("ERR: Connection inactive");
-            controller.showErrorMessage("Connection inactive");
+            controller.displayError("Connection inactive");
             System.exit(0);
         }
         System.out.println("SNDS: Logout\n");
@@ -106,7 +106,7 @@ public class ServerClient {
             }
         } catch (IOException e) {
             System.err.println("ERR: Connection inactive (listenToServer)");
-            controller.showErrorMessage("Connection inactive");
+            controller.displayError("Connection inactive");
             System.exit(0);
         }
     }
@@ -116,12 +116,12 @@ public class ServerClient {
             if (System.currentTimeMillis() - this.lastPing > TIMEOUT && this.needConnectionMessage) {
                 System.err.println("ERR: Connection inactive (monitorConnection)");
                 this.needConnectionMessage = false;
-                controller.showConnectionError();
+                controller.notifyConnectionIssue();
             }
 
             if (System.currentTimeMillis() - this.lastPing > ZOMBIE_TIMEOUT) {
                 System.err.println("ERR: Connection inactive - zombie timeout (monitorConnection)");
-                controller.showErrorMessage("Connection inactive");
+                controller.displayError("Connection inactive");
             }
             try {
                 Thread.sleep(100);
@@ -137,11 +137,11 @@ public class ServerClient {
             case "GAME_STATUS": {
                 System.out.println("RCV: GAME_STATUS");
                 if (parts[1].equals(GAME_STATUS_DRAW)) {
-                    new Thread(() -> controller.showResult("DRAW")).start();
+                    new Thread(() -> controller.displayResult("DRAW")).start();
                 } else if (parts[1].equals(GAME_STATUS_OPP_END)) {
-                    new Thread(() -> controller.showResult("OPPONENT DID NOT WANT TO WAIT FOR YOU")).start();
+                    new Thread(() -> controller.displayResult("OPPONENT DID NOT WANT TO WAIT FOR YOU")).start();
                 } else {
-                    new Thread(() -> controller.showResult(parts[1].equals(controller.getModel().getMyPlayer().getName()) ? "Winner winner chicken dinner!" : "Better luck next time...")).start();
+                    new Thread(() -> controller.displayResult(parts[1].equals(controller.getModel().getMyPlayer().getName()) ? "Winner winner chicken dinner!" : "Better luck next time...")).start();
                 }
                 break;
             }
@@ -153,7 +153,7 @@ public class ServerClient {
             case "WANT_GAME": {
                 System.out.println("RCV: WANT_GAME");
                 controller.getModel().getMyPlayer().setPlayerChar(parts[1].charAt(0));
-                controller.openWaiting();
+                controller.displayWaitingScreen();
                 break;
             }
             case "START_GAME": {
@@ -161,26 +161,26 @@ public class ServerClient {
                 controller.getModel().setOpponentPlayer(parts[1], parts[2].charAt(0));
                 controller.setMyTurn(parts[3].charAt(0) == '1');
                 //if my turn notify player
-                if (controller.getMyTurn()) {
-                    controller.notification("Your turn!");
+                if (controller.isMyTurn()) {
+                    controller.displayNotification("Your turn!");
                 } else {
-                    controller.notification("Waiting for opponent move");
+                    controller.displayNotification("Waiting for opponent move");
                 }
-                controller.newGame();
+                controller.startNewGame();
                 break;
             }
             case "MOVE": {
                 System.out.println("RCV: MOVE");
                 int status = Integer.parseInt(parts[1]);
                 if (MOVE_BAD_STATUS.contains(status)) {
-                    controller.notification("Invalid move, try again");
+                    controller.displayNotification("Invalid move, try again");
                     System.out.println("Invalid move: " + status);
                     return;
                 }
                 controller.setMyTurn(false);
-                controller.updateBoard(Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), controller.getModel().getMyPlayer());
-                controller.notification("Waiting for opponent move");
-                controller.updateHeader();
+                controller.refreshGameBoard(Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), controller.getModel().getMyPlayer());
+                controller.displayNotification("Waiting for opponent move");
+                controller.refreshHeader();
                 break;
             }
             case "OPP_MOVE": {
@@ -188,9 +188,9 @@ public class ServerClient {
                 int toX = Integer.parseInt(parts[1]);
                 int toY = Integer.parseInt(parts[2]);
                 controller.setMyTurn(true);
-                controller.updateBoard(toX, toY, controller.getModel().getOpponentPlayer());
-                controller.notification("Your turn!");
-                controller.updateHeader();
+                controller.refreshGameBoard(toX, toY, controller.getModel().getOpponentPlayer());
+                controller.displayNotification("Your turn!");
+                controller.refreshHeader();
                 break;
             }
             case "PING": {
@@ -205,8 +205,8 @@ public class ServerClient {
             case "OPP_DISCONNECTED": {
                 System.out.println("RCV: OPP_DISCONNECTED");
                 controller.setMyTurn(false);
-                controller.repaintBoard();
-                new Thread(() -> controller.showOpponentDisconnected()).start();
+                controller.refreshGameView();
+                new Thread(() -> controller.notifyDisconnection()).start();
                 break;
             }
             case "RECONNECT": {
@@ -214,13 +214,13 @@ public class ServerClient {
                 controller.setMyTurn(parts[2].equals(controller.getModel().getMyPlayer().getName()));
                 controller.getModel().updateBoard(parts[1]);
                 controller.getModel().setOpponentPlayer(parts[3], parts[4].charAt(0));
-                controller.repaintBoard();
-                controller.updateHeader();
+                controller.refreshGameView();
+                controller.refreshHeader();
                 break;
             }
             default: {
                 System.out.println("Invalid server msg -> close connection" + response);
-                controller.showErrorMessage("Invalid server message");
+                controller.displayError("Invalid server message");
                 System.exit(0);
             }
         }

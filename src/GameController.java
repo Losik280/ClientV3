@@ -1,146 +1,149 @@
 /**
- * Controller for Reversi game (MVC pattern).
+ * Reversi game controller based on MVC design pattern.
  */
 public class GameController implements Runnable {
     /**
-     * The model of the game.
+     * The core model of the game.
      */
     private final GameModel model;
 
     /**
-     * Class for Graphical User Interface.
+     * User interface for the game.
      */
     private final GameView view;
 
     /**
-     * The client for communication with the server.
+     * Communication client for server interaction.
      */
-    private ServerClient serverClient;
+    private NetworkClient networkClient;
 
-    private boolean myTurn = false;
+    private boolean isActivePlayer = false;
 
-    public Thread controllerThread;
+    public Thread ctrlThread;
 
     /**
-     * Class constructor
+     * Initialize controller components.
      */
     public GameController() {
-        this.model = new GameModel(myTurn);
+        this.model = new GameModel(isActivePlayer);
         this.view = new GameView(this);
         view.setController(this);
-        controllerThread = new Thread(this);
-        controllerThread.start();
+        ctrlThread = new Thread(this);
+        ctrlThread.start();
     }
 
-    public void setMyTurn(boolean myTurn) {
-        this.myTurn = myTurn;
+    public void setMyTurn(boolean turn) {
+        this.isActivePlayer = turn;
     }
 
-    public boolean getMyTurn() {
-        return myTurn;
+    public boolean isMyTurn() {
+        return this.isActivePlayer;
     }
 
-    public ServerClient getServerClient() {
-        return serverClient;
+    public NetworkClient getNetworkClient() {
+        return this.networkClient;
     }
 
     /**
-     * Getter for the model.
+     * Retrieves the game model.
      *
-     * @return The model of the game.
+     * @return current game model.
      */
     public GameModel getModel() {
-        return model;
+        return this.model;
     }
 
-    public void setServerClient(ServerClient serverClient) {
-        this.serverClient = serverClient;
+    public void setNetworkClient(NetworkClient client) {
+        this.networkClient = client;
     }
 
-    public void openWaiting() {
+
+
+    /**
+     * Initiates a new game session.
+     */
+    public void startNewGame() {
+        view.initializeBoard();
+        model.resetBoard(isActivePlayer);
+        view.updateBoard(model, isActivePlayer);
+    }
+
+    public void sendPlayerMove(int destX, int destY) {
+        networkClient.sendMove(destX, destY);
+    }
+
+    public void notifyOpponentDisconnection(String response) {
+        networkClient.sendOppDiscResponse(response);
+    }
+
+    public void sendLogin(String playerName) {
+        networkClient.sendLogin(playerName);
+    }
+
+    public void sendLogout() {
+        networkClient.sendLogout();
+    }
+
+    public void requestGameStart() {
+        networkClient.sendWantGame();
+    }
+
+    public void displayWaitingScreen() {
         view.showWaitingPanel();
     }
 
-    public void openLogin() {
+    public void displayLoginScreen() {
         view.showLoginPanel();
         while (model.getMyPlayer() == null) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
         }
     }
 
-    /**
-     * Starts a new game.
-     */
-    public void newGame() {
-        view.initializeBoard();
-        model.resetBoard(myTurn);
-        view.updateBoard(model, myTurn);
-    }
-
-    public void sendPlayerMove( int toX, int toY) {
-        serverClient.sendMove( toX, toY);
-    }
-
-    public void sendOppDiscResponse(String response) {
-        serverClient.sendOppDiscResponse(response);
-    }
-
-    public void sendLogin(String playerName) {
-        serverClient.sendLogin(playerName);
-    }
-
-    public void sendLogout() {
-        serverClient.sendLogout();
-    }
-
-    public void sendWantGame() {
-        serverClient.sendWantGame();
-    }
-
-    public void showResult(String result) {
+    public void displayResult(String result) {
         view.showGameResult(result);
     }
 
-    public void showOpponentDisconnected() {
+    public void notifyDisconnection() {
         view.showOpponentDisconnected();
     }
 
-    public void showConnectionError() {
+    public void notifyConnectionIssue() {
         view.showConnectionError();
     }
 
     /**
-     * Updates the game board with the player's move.
+     * Updates the board state with the latest move.
      *
-     * @param player The player's name.
+     * @param player The current player making the move.
      */
-    public void updateBoard(int to_x, int to_y, Player player) {
-        model.updateBoard(to_x, to_y, player.getPlayerChar());
-        view.updateBoard(model, myTurn);
+    public void refreshGameBoard(int xCoord, int yCoord, Player player) {
+        model.updateBoard(xCoord, yCoord, player.getPlayerChar());
+        view.updateBoard(model, isActivePlayer);
     }
 
-    public void repaintBoard() {
-        view.updateBoard(model, myTurn);
+    public void refreshGameView() {
+        view.updateBoard(model, isActivePlayer);
     }
 
-    public void updateHeader() {
+    public void refreshHeader() {
         view.updateHeader();
     }
 
-    public void showErrorMessage(String message) {
-        view.showErrorMessage(message);
+    public void displayError(String errorMessage) {
+        view.showErrorMessage(errorMessage);
     }
 
     @Override
     public void run() {
-        openLogin();
+        displayLoginScreen();
     }
 
-    public void notification(String s) {
-        view.updateLabel(s);
+    public void displayNotification(String message) {
+        view.updateLabel(message);
     }
 }
