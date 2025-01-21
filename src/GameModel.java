@@ -82,8 +82,8 @@ public class GameModel {
      * Sets the board to its initial state.
      */
     public void resetBoard(boolean isFirstPlayer) {
-        char localChar = this.localPlayer.getPlayerChar();
-        char remoteChar = this.remotePlayer.getPlayerChar();
+        char localChar = this.localPlayer.getPlayerToken();
+        char remoteChar = this.remotePlayer.getPlayerToken();
 
         for (char[] row : gameBoard) {
             Arrays.fill(row, ' ');
@@ -179,33 +179,74 @@ public class GameModel {
 }
 
 
+/**
+ * Represents a player in the game.
+ */
 class Player {
+    /**
+     * The character token representing the player.
+     */
+    char playerToken;
+
+    /**
+     * The name of the player.
+     */
     private String name;
-    char playerChar;
 
-    public Player (String name) {
+    /**
+     * Constructs a Player with the specified name.
+     *
+     * @param name The name of the player.
+     */
+    public Player(String name) {
         this.name = name;
     }
 
-    public Player (String name, char playerChar) {
+    /**
+     * Constructs a Player with the specified name and token.
+     *
+     * @param name The name of the player.
+     * @param playerToken The character token representing the player.
+     */
+    public Player(String name, char playerToken) {
         this.name = name;
-        this.playerChar = playerChar;
+        this.playerToken = playerToken;
     }
 
+    /**
+     * Gets the name of the player.
+     *
+     * @return The name of the player.
+     */
     public String getName() {
         return this.name;
     }
 
-    public char getPlayerChar() {
-        return this.playerChar;
-    }
-
+    /**
+     * Sets the name of the player.
+     *
+     * @param name The new name of the player.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setPlayerChar(char playerChar) {
-        this.playerChar = playerChar;
+    /**
+     * Gets the character token representing the player.
+     *
+     * @return The character token representing the player.
+     */
+    public char getPlayerToken() {
+        return this.playerToken;
     }
 
+    /**
+     * Sets the character token representing the player.
+     *
+     * @param playerToken The new character token representing the player.
+     */
+    public void setPlayerToken(char playerToken) {
+        this.playerToken = playerToken;
+    }
 }
+

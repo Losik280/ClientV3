@@ -265,7 +265,7 @@ public class NetworkClient {
 
         commandHandlers.put("JOIN_GAME", () -> {
             System.out.println("RCV: JOIN_GAME");
-            mainController.getModel().getLocalPlayer().setPlayerChar(parts[1].charAt(0));
+            mainController.getModel().getLocalPlayer().setPlayerToken(parts[1].charAt(0));
             mainController.displayWaitingScreen();
         });
 

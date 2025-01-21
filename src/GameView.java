@@ -405,7 +405,7 @@ public class GameView extends JFrame {
         lblRemoteName.setFont(new Font("Arial", Font.PLAIN, 20));
         panelHeader.add(lblRemoteName);
 
-        char localChar = mainController.getModel().getLocalPlayer().getPlayerChar();
+        char localChar = mainController.getModel().getLocalPlayer().getPlayerToken();
         if (localChar == 'R') {
             lblLocalName.setForeground(Color.RED);
             lblRemoteName.setForeground(Color.BLUE);

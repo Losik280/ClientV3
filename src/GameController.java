@@ -11,15 +11,12 @@ public class GameController implements Runnable {
      * User interface for the game.
      */
     private final GameView view;
-
+    public Thread ctrlThread;
     /**
      * Communication client for server interaction.
      */
     private NetworkClient networkClient;
-
     private boolean isActivePlayer = false;
-
-    public Thread ctrlThread;
 
     /**
      * Initialize controller components.
@@ -32,16 +29,20 @@ public class GameController implements Runnable {
         ctrlThread.start();
     }
 
-    public void setMyTurn(boolean turn) {
-        this.isActivePlayer = turn;
-    }
-
     public boolean isMyTurn() {
         return this.isActivePlayer;
     }
 
+    public void setMyTurn(boolean turn) {
+        this.isActivePlayer = turn;
+    }
+
     public NetworkClient getNetworkClient() {
         return this.networkClient;
+    }
+
+    public void setNetworkClient(NetworkClient client) {
+        this.networkClient = client;
     }
 
     /**
@@ -52,12 +53,6 @@ public class GameController implements Runnable {
     public GameModel getModel() {
         return this.model;
     }
-
-    public void setNetworkClient(NetworkClient client) {
-        this.networkClient = client;
-    }
-
-
 
     /**
      * Initiates a new game session.
@@ -122,7 +117,7 @@ public class GameController implements Runnable {
      * @param player The current player making the move.
      */
     public void refreshGameBoard(int xCoord, int yCoord, Player player) {
-        model.placeStoneAndUpdate(xCoord, yCoord, player.getPlayerChar());
+        model.placeStoneAndUpdate(xCoord, yCoord, player.getPlayerToken());
         view.updateBoard(model, isActivePlayer);
     }
 
