@@ -24,17 +24,14 @@ public class GameView extends JFrame {
      * A 2D array (matrix) of buttons that comprise the Reversi board.
      */
     private final JButton[][] boardButtons = new JButton[GAME_BOARD_SIZE][GAME_BOARD_SIZE];
-
-    /**
-     * The main game controller. It oversees the game logic and network operations.
-     */
-    private GameController mainController;
-
     /**
      * A label that displays status messages or tips for the player.
      */
     private final JLabel lblStatus;
-
+    /**
+     * The main game controller. It oversees the game logic and network operations.
+     */
+    private GameController mainController;
     /**
      * A panel displaying the login form.
      */
@@ -356,8 +353,8 @@ public class GameView extends JFrame {
     /**
      * Updates the board's colors and clickability according to the current model state.
      *
-     * @param model        The main game model providing the current board state.
-     * @param isClickable  If true, the board squares are enabled for user interaction.
+     * @param model       The main game model providing the current board state.
+     * @param isClickable If true, the board squares are enabled for user interaction.
      */
     public void updateBoard(GameModel model, boolean isClickable) {
         char[][] board = model.getGameBoard();
